@@ -1,6 +1,6 @@
 package com.planit.keeper.country.application;
 
-import com.planit.keeper.country.domain.CountryRepository;
+import com.planit.keeper.country.infra.CountryRepository;
 import com.planit.keeper.country.domain.CountryClient;
 import com.planit.keeper.country.domain.Country;
 import java.util.List;

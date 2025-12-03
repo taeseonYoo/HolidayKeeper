@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class HolidayService {
     private static final Integer YEAR_RANGE = 5;
+
     private final CountryService countryService;
     private final HolidayRepository holidayRepository;
     private final HolidayClient holidayClient;
