@@ -3,6 +3,7 @@ package com.planit.keeper.holiday.presentation;
 import com.planit.keeper.holiday.application.HolidayService;
 import com.planit.keeper.holiday.presentation.dto.DeleteHolidayRequest;
 import com.planit.keeper.holiday.presentation.dto.RefreshHolidayRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -27,7 +28,7 @@ public class HolidayController {
     }
 
     @DeleteMapping
-    public void deleteHolidays(@RequestBody DeleteHolidayRequest request) {
+    public void deleteHolidays(@Valid @RequestBody DeleteHolidayRequest request) {
         holidayService.delete(request.getYear(), request.getCountryCode());
     }
 
@@ -39,7 +40,7 @@ public class HolidayController {
     }
 
     @PutMapping
-    public void refreshHolidays(@RequestBody RefreshHolidayRequest request) {
+    public void refreshHolidays(@Valid @RequestBody RefreshHolidayRequest request) {
         holidayService.refresh(request.getYear(), request.getCountryCode());
     }
 }
