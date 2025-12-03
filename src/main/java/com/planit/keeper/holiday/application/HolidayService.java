@@ -7,7 +7,6 @@ import com.planit.keeper.holiday.domain.Holiday;
 import com.planit.keeper.holiday.domain.HolidayClient;
 import com.planit.keeper.holiday.infra.HolidayRepository;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,18 +30,8 @@ public class HolidayService {
         for (int year = nowYear-4; year <= nowYear; year++) {
             for (Country country : savedCountry) {
                 String json = holidayClient.getPublicHolidays(country.getCountryCode(), year);
-
-                List<HolidayResponse> holidays;
-                try {
-                    holidays = holidayMapper.toHolidayResponses(json);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException("");
-                }
-                List<Holiday> holidayEntities = holidays.stream()
-                        .map(hd -> new Holiday(hd.getDate(), hd.getLocalName(), hd.getName(), hd.getCountryCode(),
-                                hd.isFixed(), hd.isGlobal(), hd.getCounties(), hd.getLaunchYear(), hd.getTypes()))
-                        .toList();
-                holidayRepository.saveAll(holidayEntities);
+                List<Holiday> holidays = convertJsonToHolidays(json);
+                holidayRepository.saveAll(holidays);
             }
         }
     }
@@ -55,10 +44,10 @@ public class HolidayService {
             countryService.findCountryOrThrow(countryCode);
             holidayRepository.deleteAllByCountryCode(countryCode);
         } else if (year != null && countryCode == null) {
-            holidayRepository.deleteAllByYear(year);
+            holidayRepository.deleteAllByHolidayYear(year);
         } else if (year != null && countryCode != null) {
             countryService.findCountryOrThrow(countryCode);
-            holidayRepository.deleteAllByYearAndCountryCode(year, countryCode);
+            holidayRepository.deleteAllByHolidayYearAndCountryCode(year, countryCode);
         }
     }
 
@@ -71,11 +60,36 @@ public class HolidayService {
             countryService.findCountryOrThrow(countryCode);
             holidays = holidayRepository.findAllByCountryCode(countryCode,pageable);
         } else if (year != null && countryCode == null) {
-            holidays = holidayRepository.findAllByYear(year,pageable);
+            holidays = holidayRepository.findAllByHolidayYear(year,pageable);
         } else if (year != null && countryCode != null) {
             countryService.findCountryOrThrow(countryCode);
-            holidays = holidayRepository.findAllByYearAndCountryCode(year, countryCode,pageable);
+            holidays = holidayRepository.findAllByHolidayYearAndCountryCode(year, countryCode,pageable);
         }
         return holidays;
+    }
+
+    @Transactional
+    public void refresh(Integer year, String countryCode) {
+        countryService.findCountryOrThrow(countryCode);
+
+        holidayRepository.deleteAllByHolidayYearAndCountryCode(year, countryCode);
+
+        String json = holidayClient.getPublicHolidays(countryCode, year);
+
+        List<Holiday> holidays = convertJsonToHolidays(json);
+        holidayRepository.saveAll(holidays);
+    }
+
+    private List<Holiday> convertJsonToHolidays(String json) {
+        List<HolidayResponse> holidays;
+        try {
+            holidays = holidayMapper.toHolidayResponses(json);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("");
+        }
+        return  holidays.stream()
+                .map(hd -> new Holiday(hd.getDate(), hd.getLocalName(), hd.getName(), hd.getCountryCode(),
+                        hd.isFixed(), hd.isGlobal(), hd.getCounties(), hd.getLaunchYear(), hd.getTypes()))
+                .toList();
     }
 }

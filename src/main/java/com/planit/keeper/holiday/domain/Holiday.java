@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,7 @@ public class Holiday {
     @ElementCollection
     private List<String> types = new ArrayList<>();
     //연도 저장 필드 for indexing
-    @Column(name = "holiday_year")
-    private int year;
+    private int holidayYear;
 
     public Holiday(LocalDate date, String localName, String name, String countryCode, boolean fixed,
                    boolean global, List<String> counties, Integer launchYear, List<String> types) {
@@ -47,6 +47,6 @@ public class Holiday {
         this.launchYear = launchYear;
         this.types = types;
 
-        this.year = date.getYear();
+        this.holidayYear = date.getYear();
     }
 }
