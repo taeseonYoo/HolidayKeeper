@@ -7,8 +7,11 @@ import com.planit.keeper.holiday.domain.Holiday;
 import com.planit.keeper.holiday.domain.HolidayClient;
 import com.planit.keeper.holiday.infra.HolidayRepository;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,5 +60,22 @@ public class HolidayService {
             countryService.findCountryOrThrow(countryCode);
             holidayRepository.deleteAllByYearAndCountryCode(year, countryCode);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Holiday> findHolidays(Integer year, String countryCode, Pageable pageable) {
+        Page<Holiday> holidays = null;
+        if (year == null && countryCode == null) {
+            throw new RuntimeException("");
+        } else if (year == null && countryCode != null) {
+            countryService.findCountryOrThrow(countryCode);
+            holidays = holidayRepository.findAllByCountryCode(countryCode,pageable);
+        } else if (year != null && countryCode == null) {
+            holidays = holidayRepository.findAllByYear(year,pageable);
+        } else if (year != null && countryCode != null) {
+            countryService.findCountryOrThrow(countryCode);
+            holidays = holidayRepository.findAllByYearAndCountryCode(year, countryCode,pageable);
+        }
+        return holidays;
     }
 }
