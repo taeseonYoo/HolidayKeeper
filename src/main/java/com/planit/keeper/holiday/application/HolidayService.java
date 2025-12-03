@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class HolidayService {
     private static final Integer YEAR_RANGE = 5;
+    private static final Integer SCHEDULER_YEAR_RANGE = 2;
 
     private final CountryService countryService;
     private final HolidayRepository holidayRepository;
@@ -82,6 +83,14 @@ public class HolidayService {
 
         List<Holiday> holidays = convertJsonToHolidays(json);
         holidayRepository.saveAll(holidays);
+    }
+
+    @Transactional
+    public void refreshPreviousAndCurrentYear() {
+        List<Integer> yearsToRefresh = getRecentYears(SCHEDULER_YEAR_RANGE);
+        List<Country> countries = countryService.findAllCountry();
+        //refresh의 트랜잭션은 무시되고, 현재 메서드의 트랜잭션에 합쳐짐
+        countries.forEach(country -> yearsToRefresh.forEach(year->refresh(year,country.getCountryCode())));
     }
 
     private List<Holiday> convertJsonToHolidays(String json) {

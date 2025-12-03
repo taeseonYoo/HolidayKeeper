@@ -28,4 +28,9 @@ public class CountryService {
     public Country findCountryOrThrow(String countryCode) {
         return countryRepository.findById(countryCode).orElseThrow(() -> new RuntimeException(""));
     }
+
+    @Transactional(readOnly = true)
+    public List<Country> findAllCountry() {
+        return countryRepository.findAll();
+    }
 }
