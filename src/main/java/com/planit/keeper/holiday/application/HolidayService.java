@@ -7,6 +7,7 @@ import com.planit.keeper.holiday.domain.Holiday;
 import com.planit.keeper.holiday.domain.HolidayClient;
 import com.planit.keeper.holiday.infra.HolidayRepository;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +30,16 @@ public class HolidayService {
         List<Integer> recentYears = getRecentYears(YEAR_RANGE);
         List<Country> savedCountry = countryService.save();
 
-        recentYears.forEach(year->savedCountry.forEach(country -> {
-            String json = holidayClient.getPublicHolidays(country.getCountryCode(), year);
-            List<Holiday> holidays = convertJsonToHolidays(json);
-            holidayRepository.saveAll(holidays);
-        }));
+        List<Holiday> target = recentYears.stream()
+                .flatMap(year -> savedCountry.stream()
+                        .flatMap(country -> {
+                            String json = holidayClient.getPublicHolidays(country.getCountryCode(), year);
+                            List<Holiday> holidays = convertJsonToHolidays(json);
+                            return holidays.stream();
+                        })
+                )
+                .toList();
+        holidayRepository.saveAll(target);
     }
 
     @Transactional

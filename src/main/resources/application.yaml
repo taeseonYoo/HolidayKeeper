@@ -10,6 +10,13 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+#        generate_statistics: true
 springdoc:
   api-docs:
     path: /api-docs

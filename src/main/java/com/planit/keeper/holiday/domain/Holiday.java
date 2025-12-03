@@ -1,13 +1,11 @@
 package com.planit.keeper.holiday.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Lob;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Holiday {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     private LocalDate date;
     private String localName;
@@ -27,10 +25,12 @@ public class Holiday {
     private String countryCode;
     private boolean fixed;
     private boolean global;
-    @ElementCollection
+    @Convert(converter = StringListConverter.class)
+    @Lob
     private List<String> counties = new ArrayList<>();
     private Integer launchYear;
-    @ElementCollection
+    @Convert(converter = StringListConverter.class)
+    @Lob
     private List<String> types = new ArrayList<>();
     //연도 저장 필드 for indexing
     private int holidayYear;
