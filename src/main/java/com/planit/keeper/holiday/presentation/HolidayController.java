@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class HolidayController {
     private final HolidayService holidayService;
 
-    @Operation(summary = "최근 5년의 공휴일을 외부 API에서 수집하여 저장", description = "")
+    @Operation(summary = "최근 5년의 공휴일을 외부 API 에서 수집하여 저장", description = "")
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> saveHolidaysLastFiveYears() {
         holidayService.saveHolidaysLastFiveYears();
@@ -41,7 +41,7 @@ public class HolidayController {
                 .body(ApiResponse.success(null));
     }
 
-    @Operation(summary = "특정 연도,국가의 공휴일 레코드 전체 삭제", description = "연도와 국가는 반드시 입력되어야 한다.")
+    @Operation(summary = "특정 연도,국가의 공휴일 레코드 전체 삭제", description = "연도와 국가 코드는 반드시 입력되어야 한다.")
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteHolidays(@Valid @RequestBody DeleteHolidayRequest request) {
         holidayService.delete(request.getYear(), request.getCountryCode());
@@ -49,7 +49,7 @@ public class HolidayController {
                 .body(ApiResponse.success(null));
     }
 
-    @Operation(summary = "연도별, 국가별 필터 기반 공휴일 조회", description = "연도, 국가, [연도,국가]가 반드시 입력되어야 한다.")
+    @Operation(summary = "연도별, 국가별 필터 기반 공휴일 조회", description = "연도, 국가 코드, [연도,국가 코드]가 반드시 입력되어야 한다.")
     @GetMapping
     public ResponseEntity<ApiResponse<PagedHolidayResponse>> getHolidays(@RequestParam(required = false) Integer year,
                                                                          @RequestParam(required = false) String countryCode,
@@ -74,7 +74,7 @@ public class HolidayController {
                         holidays.getTotalElements(), holidays.getTotalPages())));
     }
 
-    @Operation(summary = "특정 연도,국가 데이터를 재호출하여 덮어쓰기", description = "연도와 국가는 반드시 입력되어야 한다.")
+    @Operation(summary = "특정 연도,국가 데이터를 재호출하여 덮어쓰기", description = "연도와 국가 코드는 반드시 입력되어야 한다.")
     @PutMapping
     public ResponseEntity<ApiResponse<Void>> refreshHolidays(@Valid @RequestBody RefreshHolidayRequest request) {
         holidayService.refresh(request.getYear(), request.getCountryCode());
