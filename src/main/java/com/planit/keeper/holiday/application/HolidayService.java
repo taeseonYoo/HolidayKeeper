@@ -8,6 +8,7 @@ import com.planit.keeper.holiday.domain.HolidayClient;
 import com.planit.keeper.holiday.infra.HolidayRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class HolidayService {
+    private static final Integer YEAR_RANGE = 5;
     private final CountryService countryService;
     private final HolidayRepository holidayRepository;
     private final HolidayClient holidayClient;
@@ -24,16 +26,14 @@ public class HolidayService {
     @Transactional
     public void saveHolidaysLastFiveYears() {
         //최초 실행인지 확인?
-        int nowYear = LocalDate.now().getYear();
+        List<Integer> recentYears = getRecentYears(YEAR_RANGE);
         List<Country> savedCountry = countryService.save();
 
-        for (int year = nowYear-4; year <= nowYear; year++) {
-            for (Country country : savedCountry) {
-                String json = holidayClient.getPublicHolidays(country.getCountryCode(), year);
-                List<Holiday> holidays = convertJsonToHolidays(json);
-                holidayRepository.saveAll(holidays);
-            }
-        }
+        recentYears.forEach(year->savedCountry.forEach(country -> {
+            String json = holidayClient.getPublicHolidays(country.getCountryCode(), year);
+            List<Holiday> holidays = convertJsonToHolidays(json);
+            holidayRepository.saveAll(holidays);
+        }));
     }
 
     @Transactional
@@ -91,5 +91,10 @@ public class HolidayService {
                 .map(hd -> new Holiday(hd.getDate(), hd.getLocalName(), hd.getName(), hd.getCountryCode(),
                         hd.isFixed(), hd.isGlobal(), hd.getCounties(), hd.getLaunchYear(), hd.getTypes()))
                 .toList();
+    }
+
+    private List<Integer> getRecentYears(int range) {
+        int now = LocalDate.now().getYear();
+        return IntStream.rangeClosed(now-(range-1),now).boxed().toList();
     }
 }
