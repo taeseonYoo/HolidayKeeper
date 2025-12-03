@@ -43,4 +43,19 @@ public class HolidayService {
             }
         }
     }
+
+    @Transactional
+    public void delete(Integer year,String countryCode) {
+        if (year == null && countryCode == null) {
+            throw new RuntimeException("");
+        } else if (year == null && countryCode != null) {
+            countryService.findCountryOrThrow(countryCode);
+            holidayRepository.deleteAllByCountryCode(countryCode);
+        } else if (year != null && countryCode == null) {
+            holidayRepository.deleteAllByYear(year);
+        } else if (year != null && countryCode != null) {
+            countryService.findCountryOrThrow(countryCode);
+            holidayRepository.deleteAllByYearAndCountryCode(year, countryCode);
+        }
+    }
 }

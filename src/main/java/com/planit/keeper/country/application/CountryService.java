@@ -24,4 +24,9 @@ public class CountryService {
         //벌크 연산으로 변경 가능하다.
         return countryRepository.saveAll(countries);
     }
+
+    @Transactional(readOnly = true)
+    public Country findCountryOrThrow(String countryCode) {
+        return countryRepository.findById(countryCode).orElseThrow(() -> new RuntimeException(""));
+    }
 }
