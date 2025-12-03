@@ -25,9 +25,15 @@ public class HolidayService {
     private final HolidayRepository holidayRepository;
     private final HolidayClient holidayClient;
     private final HolidayMapper holidayMapper;
+
     @Transactional
     public void saveHolidaysLastFiveYears() {
         //최초 실행인지 확인?
+        long total = holidayRepository.count();
+        if (total > 0) {
+            throw new RuntimeException("이미 공휴일 데이터가 저장되어 있습니다.");
+        }
+
         List<Integer> recentYears = getRecentYears(YEAR_RANGE);
         List<Country> savedCountry = countryService.save();
 
@@ -44,9 +50,9 @@ public class HolidayService {
     }
 
     @Transactional
-    public void delete(Integer year,String countryCode) {
+    public void delete(Integer year, String countryCode) {
         if (year == null && countryCode == null) {
-            throw new RuntimeException("");
+            throw new RuntimeException("공휴일 데이터 삭제시에 year 과 countryCode 는 반드시 입력하셔야 합니다.");
         } else if (year == null && countryCode != null) {
             countryService.findCountryOrThrow(countryCode);
             holidayRepository.deleteAllByCountryCode(countryCode);
@@ -62,15 +68,15 @@ public class HolidayService {
     public Page<Holiday> findHolidays(Integer year, String countryCode, Pageable pageable) {
         Page<Holiday> holidays = null;
         if (year == null && countryCode == null) {
-            throw new RuntimeException("");
+            throw new RuntimeException("공휴일 데이터 검색시에 year 과 countryCode 는 반드시 입력하셔야 합니다.");
         } else if (year == null && countryCode != null) {
             countryService.findCountryOrThrow(countryCode);
-            holidays = holidayRepository.findAllByCountryCode(countryCode,pageable);
+            holidays = holidayRepository.findAllByCountryCode(countryCode, pageable);
         } else if (year != null && countryCode == null) {
-            holidays = holidayRepository.findAllByHolidayYear(year,pageable);
+            holidays = holidayRepository.findAllByHolidayYear(year, pageable);
         } else if (year != null && countryCode != null) {
             countryService.findCountryOrThrow(countryCode);
-            holidays = holidayRepository.findAllByHolidayYearAndCountryCode(year, countryCode,pageable);
+            holidays = holidayRepository.findAllByHolidayYearAndCountryCode(year, countryCode, pageable);
         }
         return holidays;
     }
@@ -92,9 +98,9 @@ public class HolidayService {
         try {
             holidays = holidayMapper.toHolidayResponses(json);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("");
+            throw new RuntimeException("공휴일 정보 파싱에 실패했습니다.");
         }
-        return  holidays.stream()
+        return holidays.stream()
                 .map(hd -> new Holiday(hd.getDate(), hd.getLocalName(), hd.getName(), hd.getCountryCode(),
                         hd.isFixed(), hd.isGlobal(), hd.getCounties(), hd.getLaunchYear(), hd.getTypes()))
                 .toList();
@@ -102,6 +108,6 @@ public class HolidayService {
 
     private List<Integer> getRecentYears(int range) {
         int now = LocalDate.now().getYear();
-        return IntStream.rangeClosed(now-(range-1),now).boxed().toList();
+        return IntStream.rangeClosed(now - (range - 1), now).boxed().toList();
     }
 }
