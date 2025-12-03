@@ -1,8 +1,8 @@
-package com.planit.holiday.country.application;
+package com.planit.keeper.country.application;
 
-import com.planit.holiday.country.domain.CountryRepository;
-import com.planit.holiday.country.domain.HolidayClient;
-import com.planit.holiday.country.domain.Country;
+import com.planit.keeper.country.domain.CountryRepository;
+import com.planit.keeper.country.domain.HolidayClient;
+import com.planit.keeper.country.domain.Country;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

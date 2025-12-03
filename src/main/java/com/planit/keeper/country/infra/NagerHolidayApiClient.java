@@ -1,7 +1,7 @@
-package com.planit.holiday.country.infra;
+package com.planit.keeper.country.infra;
 
-import com.planit.holiday.country.application.CountryResponse;
-import com.planit.holiday.country.domain.HolidayClient;
+import com.planit.keeper.country.application.CountryResponse;
+import com.planit.keeper.country.domain.HolidayClient;
 import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;

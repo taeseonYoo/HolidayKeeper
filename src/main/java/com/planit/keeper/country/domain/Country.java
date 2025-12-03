@@ -1,4 +1,4 @@
-package com.planit.holiday.country.domain;
+package com.planit.keeper.country.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

@@ -1,6 +1,6 @@
-package com.planit.holiday.country.domain;
+package com.planit.keeper.country.domain;
 
-import com.planit.holiday.country.application.CountryResponse;
+import com.planit.keeper.country.application.CountryResponse;
 import java.util.List;
 
 public interface HolidayClient {
