@@ -51,17 +51,8 @@ public class HolidayService {
 
     @Transactional
     public void delete(Integer year, String countryCode) {
-        if (year == null && countryCode == null) {
-            throw new RuntimeException("공휴일 데이터 삭제시에 year 과 countryCode 는 반드시 입력하셔야 합니다.");
-        } else if (year == null && countryCode != null) {
-            countryService.findCountryOrThrow(countryCode);
-            holidayRepository.deleteAllByCountryCode(countryCode);
-        } else if (year != null && countryCode == null) {
-            holidayRepository.deleteAllByHolidayYear(year);
-        } else if (year != null && countryCode != null) {
-            countryService.findCountryOrThrow(countryCode);
-            holidayRepository.deleteAllByHolidayYearAndCountryCode(year, countryCode);
-        }
+        countryService.findCountryOrThrow(countryCode);
+        holidayRepository.deleteAllByHolidayYearAndCountryCode(year, countryCode);
     }
 
     @Transactional(readOnly = true)

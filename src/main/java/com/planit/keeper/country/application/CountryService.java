@@ -21,7 +21,6 @@ public class CountryService {
         List<Country> countries = availableCountries.stream()
                 .map(i -> new Country(i.getCountryCode(), i.getName()))
                 .toList();
-        //벌크 연산으로 변경 가능하다.
         return countryRepository.saveAll(countries);
     }
 

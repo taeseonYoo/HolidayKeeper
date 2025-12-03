@@ -6,10 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface HolidayRepository extends JpaRepository<Holiday, Long> {
-    void deleteAllByCountryCode(String countryCode);
-
-    void deleteAllByHolidayYear(int holidayYear);
-
     void deleteAllByHolidayYearAndCountryCode(int holidayYear, String countryCode);
 
     Page<Holiday> findAllByCountryCode(String countryCode, Pageable pageable);
