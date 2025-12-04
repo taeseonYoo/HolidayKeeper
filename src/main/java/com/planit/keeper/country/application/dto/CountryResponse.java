@@ -1,4 +1,4 @@
-package com.planit.keeper.country.application;
+package com.planit.keeper.country.application.dto;
 
 import lombok.Getter;
 

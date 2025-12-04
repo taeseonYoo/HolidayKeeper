@@ -1,5 +1,6 @@
 package com.planit.keeper.holiday.domain;
 
+import com.planit.keeper.global.JsonListConverter;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,14 +35,13 @@ public class Holiday {
     private String countryCode;
     private boolean fixed;
     private boolean global;
-    @Convert(converter = StringListConverter.class)
+    @Convert(converter = JsonListConverter.class)
     @Lob
     private List<String> counties = new ArrayList<>();
     private Integer launchYear;
-    @Convert(converter = StringListConverter.class)
+    @Convert(converter = JsonListConverter.class)
     @Lob
     private List<String> types = new ArrayList<>();
-    //연도 저장 필드 for indexing
     private int holidayYear;
 
     public Holiday(LocalDate date, String localName, String name, String countryCode, boolean fixed,

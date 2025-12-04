@@ -1,5 +1,6 @@
 package com.planit.keeper.country.application;
 
+import com.planit.keeper.country.application.dto.CountryResponse;
 import com.planit.keeper.country.infra.CountryRepository;
 import com.planit.keeper.country.domain.CountryClient;
 import com.planit.keeper.country.domain.Country;
@@ -15,7 +16,7 @@ public class CountryService {
     private final CountryClient countryClient;
 
     @Transactional
-    public List<Country> save() {
+    public List<Country> saveCountryCodeAndLoad() {
         List<CountryResponse> availableCountries = countryClient.getAvailableCountries();
 
         List<Country> countries = availableCountries.stream()

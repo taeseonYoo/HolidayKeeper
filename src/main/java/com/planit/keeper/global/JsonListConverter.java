@@ -1,4 +1,4 @@
-package com.planit.keeper.holiday.domain;
+package com.planit.keeper.global;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,7 +7,7 @@ import jakarta.persistence.Converter;
 import java.util.List;
 
 @Converter
-public class StringListConverter implements AttributeConverter<List<String>, String> {
+public class JsonListConverter implements AttributeConverter<List<String>, String> {
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
     public String convertToDatabaseColumn(List<String> dataList) {

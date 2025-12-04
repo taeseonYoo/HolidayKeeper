@@ -1,6 +1,5 @@
 package com.planit.keeper.holiday.application;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.planit.keeper.country.application.CountryService;
 import com.planit.keeper.country.domain.Country;
 import com.planit.keeper.holiday.domain.Holiday;
@@ -10,6 +9,7 @@ import com.planit.keeper.holiday.presentation.dto.HolidayResponse;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,28 +25,15 @@ public class HolidayService {
     private final CountryService countryService;
     private final HolidayRepository holidayRepository;
     private final HolidayClient holidayClient;
-    private final HolidayMapper holidayMapper;
 
     @Transactional
     public void saveHolidaysLastFiveYears() {
-        //최초 실행인지 확인?
-        long total = holidayRepository.count();
-        if (total > 0) {
-            throw new RuntimeException("이미 공휴일 데이터가 저장되어 있습니다.");
-        }
+        checkHolidayIsEmpty();
 
-        List<Integer> recentYears = getRecentYears(YEAR_RANGE);
-        List<Country> savedCountry = countryService.save();
+        List<Integer> recentYears = getYearsFromNow(YEAR_RANGE);
+        List<Country> savedCountry = countryService.saveCountryCodeAndLoad();
 
-        List<Holiday> target = recentYears.stream()
-                .flatMap(year -> savedCountry.stream()
-                        .flatMap(country -> {
-                            String json = holidayClient.getPublicHolidays(country.getCountryCode(), year);
-                            List<Holiday> holidays = convertJsonToHolidays(json);
-                            return holidays.stream();
-                        })
-                )
-                .toList();
+        List<Holiday> target = fetchHolidaysByYearsAndCountries(recentYears, savedCountry);
         holidayRepository.saveAll(target);
     }
 
@@ -58,19 +45,23 @@ public class HolidayService {
 
     @Transactional(readOnly = true)
     public Page<Holiday> findHolidays(Integer year, String countryCode, Pageable pageable) {
-        Page<Holiday> holidays = null;
         if (year == null && countryCode == null) {
             throw new RuntimeException("공휴일 데이터 검색시에 year 과 countryCode 는 반드시 입력하셔야 합니다.");
-        } else if (year == null && countryCode != null) {
-            countryService.findCountryOrThrow(countryCode);
-            holidays = holidayRepository.findAllByCountryCode(countryCode, pageable);
-        } else if (year != null && countryCode == null) {
-            holidays = holidayRepository.findAllByHolidayYear(year, pageable);
-        } else if (year != null && countryCode != null) {
-            countryService.findCountryOrThrow(countryCode);
-            holidays = holidayRepository.findAllByHolidayYearAndCountryCode(year, countryCode, pageable);
         }
-        return holidays;
+
+        if (countryCode != null) {
+            countryService.findCountryOrThrow(countryCode);
+        }
+
+        if (year == null) {
+            return holidayRepository.findAllByCountryCode(countryCode, pageable);
+        }
+
+        if (countryCode == null) {
+            return holidayRepository.findAllByHolidayYear(year, pageable);
+        }
+
+        return holidayRepository.findAllByHolidayYearAndCountryCode(year, countryCode, pageable);
     }
 
     @Transactional
@@ -79,35 +70,47 @@ public class HolidayService {
 
         holidayRepository.deleteAllByHolidayYearAndCountryCode(year, countryCode);
 
-        String json = holidayClient.getPublicHolidays(countryCode, year);
+        List<HolidayResponse> responses = holidayClient.getPublicHolidays(countryCode, year);
+        List<Holiday> holidays = convertToHolidays(responses);
 
-        List<Holiday> holidays = convertJsonToHolidays(json);
         holidayRepository.saveAll(holidays);
     }
 
     @Transactional
     public void refreshPreviousAndCurrentYear() {
-        List<Integer> yearsToRefresh = getRecentYears(SCHEDULER_YEAR_RANGE);
+        List<Integer> yearsToRefresh = getYearsFromNow(SCHEDULER_YEAR_RANGE);
         List<Country> countries = countryService.findAllCountry();
-        //refresh의 트랜잭션은 무시되고, 현재 메서드의 트랜잭션에 합쳐짐
-        countries.forEach(country -> yearsToRefresh.forEach(year->refresh(year,country.getCountryCode())));
+
+        countries.forEach(country -> yearsToRefresh.forEach(year -> refresh(year, country.getCountryCode())));
     }
 
-    private List<Holiday> convertJsonToHolidays(String json) {
-        List<HolidayResponse> holidays;
-        try {
-            holidays = holidayMapper.toHolidayResponses(json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("공휴일 정보 파싱에 실패했습니다.");
-        }
-        return holidays.stream()
-                .map(hd -> new Holiday(hd.getDate(), hd.getLocalName(), hd.getName(), hd.getCountryCode(),
-                        hd.isFixed(), hd.isGlobal(), hd.getCounties(), hd.getLaunchYear(), hd.getTypes()))
-                .toList();
-    }
-
-    private List<Integer> getRecentYears(int range) {
+    private List<Integer> getYearsFromNow(int range) {
         int now = LocalDate.now().getYear();
         return IntStream.rangeClosed(now - (range - 1), now).boxed().toList();
     }
+
+    private void checkHolidayIsEmpty() {
+        if (holidayRepository.count() > 0) {
+            throw new RuntimeException("이미 공휴일 데이터가 저장되어 있습니다.");
+        }
+    }
+
+    private List<Holiday> fetchHolidaysByYearsAndCountries(List<Integer> recentYears, List<Country> countries) {
+        return recentYears.stream()
+                .flatMap(year -> countries.stream()
+                        .flatMap(country -> fetchHolidaysByCountryAndYear(country.getCountryCode(), year)))
+                .toList();
+    }
+
+    private Stream<Holiday> fetchHolidaysByCountryAndYear(String countryCode, int year) {
+        List<HolidayResponse> responses = holidayClient.getPublicHolidays(countryCode, year);
+        return convertToHolidays(responses).stream();
+    }
+
+    private List<Holiday> convertToHolidays(List<HolidayResponse> responses) {
+        return responses.stream()
+                .map(hd -> new Holiday(hd.getDate(), hd.getLocalName(), hd.getName(), hd.getCountryCode(), hd.isFixed(),
+                        hd.isGlobal(), hd.getCounties(), hd.getLaunchYear(), hd.getTypes())).toList();
+    }
+
 }

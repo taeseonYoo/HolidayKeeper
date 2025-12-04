@@ -13,7 +13,11 @@ import org.springframework.stereotype.Component;
 public class HolidayMapper {
     private final ObjectMapper objectMapper;
 
-    public List<HolidayResponse> toHolidayResponses(String json) throws JsonProcessingException {
-        return objectMapper.readValue(json, new TypeReference<List<HolidayResponse>>() {});
+    public List<HolidayResponse> toHolidayResponses(String json){
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<HolidayResponse>>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("공휴일 정보 파싱에 실패했습니다.");
+        }
     }
 }
