@@ -96,7 +96,7 @@ public class HolidayService {
     }
 
     private List<Holiday> fetchHolidaysByYearsAndCountries(List<Integer> recentYears, List<Country> countries) {
-        return recentYears.stream()
+        return recentYears.parallelStream()
                 .flatMap(year -> countries.stream()
                         .flatMap(country -> fetchHolidaysByCountryAndYear(country.getCountryCode(), year)))
                 .toList();

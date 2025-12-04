@@ -23,7 +23,3 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
   default-produces-media-type: application/json
-
-external:
-  nager:
-    base-url: https://date.nager.at/api/v3

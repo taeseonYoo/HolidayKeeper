@@ -10,13 +10,11 @@ import org.springframework.web.client.RestClient;
 
 @Component
 public class NagerCountryApiClient implements CountryClient {
-    @Value("${external.nager.base-url}")
-    private String baseUrl;
     private final RestClient restClient;
 
     public NagerCountryApiClient(RestClient.Builder builder) {
         this.restClient = builder
-                .baseUrl(baseUrl)
+                .baseUrl("https://date.nager.at/api/v3")
                 .build();
     }
 

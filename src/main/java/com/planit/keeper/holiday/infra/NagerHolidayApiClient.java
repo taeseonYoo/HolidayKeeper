@@ -10,14 +10,12 @@ import org.springframework.web.client.RestClient;
 
 @Component
 public class NagerHolidayApiClient implements HolidayClient {
-    @Value("${external.nager.base-url}")
-    private String baseUrl;
     private final RestClient restClient;
     private final HolidayMapper holidayMapper;
 
     public NagerHolidayApiClient(RestClient.Builder builder, HolidayMapper holidayMapper) {
         this.restClient = builder
-                .baseUrl(baseUrl)
+                .baseUrl("https://date.nager.at/api/v3")
                 .build();
         this.holidayMapper = holidayMapper;
     }
